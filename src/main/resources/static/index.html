@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContractWatch | Enterprise Contract Management</title>
+    
+    <!-- Bootstrap 5 & Google Fonts & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --glass-bg: rgba(15, 23, 42, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --card-inner-bg: rgba(30, 41, 59, 0.7);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            color: #f8fafc;
+            background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.92)),
+                        url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat fixed;
+            padding-bottom: 3rem;
+        }
+
+        /* Glassmorphism Containers */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Equal-Height Stretch Alignment */
+        .equal-height-col {
+            display: flex;
+            flex-direction: column;
+        }
+        .equal-height-col .glass-card {
+            flex: 1;
+        }
+
+        /* Input Customizations for Dark Theme */
+        .form-control, .form-select {
+            background-color: var(--card-inner-bg) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
+            border-radius: 10px;
+            padding: 0.65rem 0.9rem;
+        }
+
+        .form-control::placeholder {
+            color: #94a3b8 !important;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #38bdf8 !important;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2) !important;
+        }
+
+        /* Stat Cards */
+        .stat-card {
+            border-left: 4px solid #38bdf8;
+            background: rgba(30, 41, 59, 0.6);
+        }
+        .stat-card-warning { border-left-color: #fbbf24; }
+        .stat-card-success { border-left-color: #34d399; }
+
+        /* Custom Status Badges */
+        .badge-status {
+            font-weight: 600;
+            padding: 0.4em 0.8em;
+            border-radius: 20px;
+        }
+        .badge-ACTIVE { background-color: rgba(52, 211, 153, 0.2); color: #34d399; border: 1px solid #34d399; }
+        .badge-EXPIRING_SOON { background-color: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid #fbbf24; }
+        .badge-EXPIRED { background-color: rgba(248, 113, 113, 0.2); color: #f87171; border: 1px solid #f87171; }
+        .badge-CANCELLED { background-color: rgba(148, 163, 184, 0.2); color: #94a3b8; border: 1px solid #94a3b8; }
+
+        /* Tables */
+        .table-custom {
+            color: #f8fafc;
+        }
+        .table-custom th {
+            color: #94a3b8;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .table-custom td {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1rem 0.75rem;
+        }
+
+        /* Buttons */
+        .btn-brand {
+            background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+            color: #fff;
+            border: none;
+            font-weight: 600;
+            border-radius: 10px;
+        }
+        .btn-brand:hover {
+            opacity: 0.95;
+            color: #fff;
+        }
+
+        /* Auth Modal Overlay */
+        .modal-content {
+            background: #0f172a;
+            border: 1px solid var(--glass-border);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation Bar -->
+    <nav class="navbar navbar-expand-lg pt-4 pb-3">
+        <div class="container">
+            <a class="navbar-brand text-white fw-bold fs-3 d-flex align-items-center gap-2" href="#">
+                <i class="bi bi-shield-lock-fill text-info"></i> ContractWatch
+            </a>
+            
+            <div class="d-flex align-items-center gap-3" id="authNavSection">
+                <!-- User Profile & Action Injected via JS -->
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-2">
+        <!-- 1. Metrics Summary Section -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="glass-card stat-card p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-secondary small fw-semibold">TOTAL CONTRACTS</span>
+                            <h2 class="fw-bold mb-0 mt-1" id="statTotalContracts">0</h2>
+                        </div>
+                        <i class="bi bi-file-earmark-text text-info fs-3"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-card stat-card stat-card-warning p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-secondary small fw-semibold">EXPIRING SOON</span>
+                            <h2 class="fw-bold text-warning mb-0 mt-1" id="statExpiringContracts">0</h2>
+                        </div>
+                        <i class="bi bi-exclamation-triangle text-warning fs-3"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-card stat-card stat-card-success p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-secondary small fw-semibold">TOTAL ACTIVE SPEND</span>
+                            <h2 class="fw-bold text-success mb-0 mt-1" id="statTotalSpend">$0.00</h2>
+                        </div>
+                        <i class="bi bi-currency-dollar text-success fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Equal Grid Main Layout -->
+        <div class="row g-4 align-items-stretch">
+            
+            <!-- Left Panel: Create Contract Form -->
+            <div class="col-lg-5 equal-height-col">
+                <div class="glass-card p-4">
+                    <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-plus-circle text-info"></i> Add New Contract
+                    </h5>
+                    <form id="contractForm">
+                        <div class="mb-3">
+                            <label class="form-label small text-secondary">Contract Title</label>
+                            <input type="text" id="title" class="form-control" placeholder="e.g. AWS Cloud Infrastructure" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-secondary">Vendor Name</label>
+                            <input type="text" id="vendorName" class="form-control" placeholder="e.g. Amazon Web Services" required>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small text-secondary">Start Date</label>
+                                <input type="date" id="startDate" class="form-control" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small text-secondary">Expiration Date</label>
+                                <input type="date" id="expirationDate" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small text-secondary">Cost ($)</label>
+                                <input type="number" step="0.01" id="cost" class="form-control" placeholder="500.00" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small text-secondary">Alert (Days Before)</label>
+                                <input type="number" id="reminderDaysBefore" class="form-control" placeholder="30" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small text-secondary">Category</label>
+                            <select id="category" class="form-select">
+                                <option value="SOFTWARE_SUBSCRIPTION">Software Subscription</option>
+                                <option value="REAL_ESTATE_LEASE">Real Estate Lease</option>
+                                <option value="EMPLOYMENT_CONTRACT">Employment Contract</option>
+                                <option value="VENDOR_AGREEMENT">Vendor Agreement</option>
+                                <option value="INSURANCE">Insurance</option>
+                                <option value="UTILITIES">Utilities</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-brand w-100 py-2">
+                            <i class="bi bi-check-circle me-1"></i> Save Contract
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Panel: Active Repository Table -->
+            <div class="col-lg-7 equal-height-col">
+                <div class="glass-card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-layers-half text-info"></i> Active Repository
+                        </h5>
+                        <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="loadContracts()">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Sync
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-custom align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Contract</th>
+                                    <th>Cost</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contractsTableBody">
+                                <!-- Dynamically populated rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-3">
+                <div class="modal-header border-0">
+                    <h5 class="modal-header-title fw-bold">Sign In to ContractWatch</h5>
+                </div>
+                <div class="modal-body">
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small">Email address</label>
+                            <input type="email" id="loginEmail" class="form-control" placeholder="admin@contractwatch.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small">Password</label>
+                            <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="btn btn-brand w-100 py-2 mt-2">Sign In</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS + Logic -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = '/api/contracts';
+        let loginModalInstance;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loginModalInstance = new bootstrap.Modal(document.getElementById('loginModal'));
+            checkAuth();
+            loadContracts();
+        });
+
+        // 1. Authentication State Handler
+        function checkAuth() {
+            const user = localStorage.getItem('cw_user');
+            const authNav = document.getElementById('authNavSection');
+
+            if (user) {
+                authNav.innerHTML = `
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-secondary rounded-pill px-3 py-2"><i class="bi bi-person-circle me-1"></i> ${user}</span>
+                        <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</button>
+                    </div>`;
+            } else {
+                authNav.innerHTML = `
+                    <button class="btn btn-sm btn-outline-info rounded-pill px-3" onclick="loginModalInstance.show()">Sign In</button>`;
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            localStorage.setItem('cw_user', email);
+            loginModalInstance.hide();
+            checkAuth();
+        });
+
+        function logout() {
+            localStorage.removeItem('cw_user');
+            checkAuth();
+        }
+
+        // 2. Data Fetching & UI Rendering
+        async function loadContracts() {
+            try {
+                const response = await fetch(API_URL);
+                const contracts = await response.json();
+                
+                updateSummaryCards(contracts);
+                renderTable(contracts);
+            } catch (err) {
+                console.error('Error fetching contracts:', err);
+            }
+        }
+
+        function updateSummaryCards(contracts) {
+            document.getElementById('statTotalContracts').innerText = contracts.length;
+            const expiringCount = contracts.filter(c => c.status === 'EXPIRING_SOON').length;
+            document.getElementById('statExpiringContracts').innerText = expiringCount;
+
+            const totalSpend = contracts.reduce((sum, c) => sum + (c.cost || 0), 0);
+            document.getElementById('statTotalSpend').innerText = '$' + totalSpend.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function renderTable(contracts) {
+            const tbody = document.getElementById('contractsTableBody');
+            tbody.innerHTML = '';
+
+            if (contracts.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-secondary">
+                            <i class="bi bi-inbox fs-2 d-block mb-2"></i> No contracts stored.
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            contracts.forEach(contract => {
+                const tr = document.createElement('tr');
+                const statusStr = contract.status ? contract.status.replace('_', ' ') : 'ACTIVE';
+                
+                tr.innerHTML = `
+                    <td>
+                        <div class="fw-bold text-white">${contract.title}</div>
+                        <div class="text-secondary small">Expires: ${contract.expirationDate || 'N/A'}</div>
+                    </td>
+                    <td class="fw-semibold">$${(contract.cost || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                    <td>
+                        <span class="badge badge-status badge-${contract.status}">${statusStr}</span>
+                    </td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteContract(${contract.id})">
+                            <i class="bi bi-trash3-fill"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 3. Form Submission
+        document.getElementById('contractForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Direct mapping with ContractRequestDTO
+            const payload = {
+                title: document.getElementById('title').value,
+                vendor: document.getElementById('vendorName').value,
+                startDate: document.getElementById('startDate').value,
+                expirationDate: document.getElementById('expirationDate').value,
+                cost: parseFloat(document.getElementById('cost').value),
+                reminderDaysBefore: parseInt(document.getElementById('reminderDaysBefore').value),
+                category: document.getElementById('category').value,
+                description: "Created via Web Dashboard",
+                autoRenew: false
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    document.getElementById('contractForm').reset();
+                    loadContracts();
+                } else {
+                    const errorText = await response.text();
+                    console.error('Backend Validation Error:', errorText);
+                    alert(`Failed to save contract (Status ${response.status}). Check browser developer console for details.`);
+                }
+            } catch (err) {
+                console.error('Network Error:', err);
+            }
+        });
+
+        // 4. Delete Action
+        async function deleteContract(id) {
+            if (!confirm('Are you sure you want to remove this contract?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    loadContracts();
+                } else {
+                    alert(`Failed to delete contract (Status ${response.status}).`);
+                }
+            } catch (err) {
+                console.error('Delete error:', err);
+            }
+        }
+    </script>
+</body>
+</html>
